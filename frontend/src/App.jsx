@@ -1,34 +1,91 @@
 import React, { useState, useEffect } from 'react';
-import { getTasks, createTask, updateTask, deleteTask } from './api';
+import { getTasks, createTask, updateTask, deleteTask, login, register, getMe } from './api';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
+  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [user, setUser] = useState(null);
+  
+  // Auth Form State
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
+
+  // Task State
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   
-  // For editing
+  // Edit State
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [editingTaskTitle, setEditingTaskTitle] = useState('');
 
+  // Handle unauthorized events triggered by api.js
   useEffect(() => {
-    fetchTasks();
+    const handleAuthError = () => {
+      setToken(null);
+      setUser(null);
+      toast.error('Session expired. Please log in again.');
+    };
+    window.addEventListener('auth-error', handleAuthError);
+    return () => window.removeEventListener('auth-error', handleAuthError);
   }, []);
 
-  const fetchTasks = async () => {
+  useEffect(() => {
+    if (token) {
+      fetchUserAndTasks();
+    }
+  }, [token]);
+
+  const fetchUserAndTasks = async () => {
     try {
       setLoading(true);
-      setError(null);
-      const data = await getTasks();
-      setTasks(data);
+      const userData = await getMe();
+      setUser(userData);
+      const tasksData = await getTasks();
+      setTasks(tasksData);
     } catch (err) {
-      setError(err.message || 'Error fetching tasks');
-      toast.error('Failed to load tasks');
+      console.error(err);
+      if (err.message !== 'Unauthorized') {
+        toast.error('Failed to load data');
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAuthSubmit = async (e) => {
+    e.preventDefault();
+    if (!email || !password) return toast.warn('Please fill all fields');
+    
+    try {
+      setAuthLoading(true);
+      if (isLogin) {
+        const data = await login({ email, password });
+        localStorage.setItem('token', data.token);
+        setToken(data.token);
+        toast.success('Logged in successfully!');
+      } else {
+        await register({ email, password });
+        toast.success('Registered successfully! Please log in.');
+        setIsLogin(true);
+      }
+    } catch (err) {
+      toast.error(err.message || 'Authentication failed');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setToken(null);
+    setUser(null);
+    setTasks([]);
+    toast.info('Logged out successfully');
   };
 
   const handleCreateTask = async (e) => {
@@ -40,7 +97,6 @@ function App() {
       return;
     }
 
-    // Optimistic UI update
     const tempId = Date.now().toString();
     const tempTask = { _id: tempId, title: newTaskTitle, completed: false };
     setTasks([tempTask, ...tasks]);
@@ -53,14 +109,12 @@ function App() {
       );
       toast.success('Task created successfully!');
     } catch (err) {
-      // Revert optimistic update
       setTasks(currentTasks => currentTasks.filter(t => t._id !== tempId));
       toast.error('Failed to create task');
     }
   };
 
   const handleToggleComplete = async (task) => {
-    // Optimistic UI update
     setTasks(currentTasks => 
       currentTasks.map(t => 
         t._id === task._id ? { ...t, completed: !t.completed } : t
@@ -69,9 +123,7 @@ function App() {
 
     try {
       await updateTask(task._id, { ...task, completed: !task.completed });
-      toast.success('Task updated successfully!');
     } catch (err) {
-      // Revert optimistic update
       setTasks(currentTasks => 
         currentTasks.map(t => 
           t._id === task._id ? { ...t, completed: task.completed } : t
@@ -99,7 +151,6 @@ function App() {
       return;
     }
 
-    // Optimistic UI update
     const originalTitle = task.title;
     setTasks(currentTasks => 
       currentTasks.map(t => 
@@ -113,7 +164,6 @@ function App() {
       await updateTask(task._id, { ...task, title: editingTaskTitle });
       toast.success('Task edited successfully!');
     } catch (err) {
-      // Revert optimistic update
       setTasks(currentTasks => 
         currentTasks.map(t => 
           t._id === task._id ? { ...t, title: originalTitle } : t
@@ -127,7 +177,6 @@ function App() {
     const isConfirmed = window.confirm('Are you sure you want to delete this task?');
     if (!isConfirmed) return;
 
-    // Optimistic UI update
     const taskToDelete = tasks.find(t => t._id === taskId);
     setTasks(currentTasks => currentTasks.filter(t => t._id !== taskId));
 
@@ -135,18 +184,63 @@ function App() {
       await deleteTask(taskId);
       toast.success('Task deleted successfully!');
     } catch (err) {
-      // Revert optimistic update
       setTasks(currentTasks => [taskToDelete, ...currentTasks]);
       toast.error('Failed to delete task');
     }
   };
 
+  if (!token) {
+    return (
+      <div className="app-container">
+        <div className="glass-panel auth-panel">
+          <header>
+            <h1>{isLogin ? 'Welcome Back' : 'Create Account'}</h1>
+            <p className="subtitle">Practical 7: Authentication Pipeline</p>
+          </header>
+          
+          <form onSubmit={handleAuthSubmit} className="auth-form">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email Address"
+              disabled={authLoading}
+              required
+            />
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              disabled={authLoading}
+              required
+            />
+            <button type="submit" className="btn-primary" disabled={authLoading}>
+              {authLoading ? 'Please wait...' : (isLogin ? 'Login' : 'Register')}
+            </button>
+          </form>
+          
+          <p className="auth-toggle">
+            {isLogin ? "Don't have an account? " : "Already have an account? "}
+            <span onClick={() => setIsLogin(!isLogin)}>
+              {isLogin ? 'Register here' : 'Login here'}
+            </span>
+          </p>
+        </div>
+        <ToastContainer position="bottom-right" />
+      </div>
+    );
+  }
+
   return (
     <div className="app-container">
       <div className="glass-panel">
-        <header>
-          <h1>Task Manager</h1>
-          <p className="subtitle">Practical 6: Full Stack Integration</p>
+        <header className="app-header">
+          <div>
+            <h1>Task Manager</h1>
+            <p className="subtitle">Welcome, {user?.email || 'User'}</p>
+          </div>
+          <button onClick={handleLogout} className="btn-logout">Logout</button>
         </header>
 
         <form onSubmit={handleCreateTask} className="task-form">
@@ -162,20 +256,13 @@ function App() {
           </button>
         </form>
 
-        {error && (
-          <div className="error-banner">
-            <p>{error}</p>
-            <button onClick={fetchTasks} className="btn-retry">Retry</button>
-          </div>
-        )}
-
         <div className="task-list">
-          {loading && tasks.length === 0 ? (
+          {loading ? (
             <div className="loading-state">
               <div className="spinner"></div>
-              <p>Loading tasks...</p>
+              <p>Loading your tasks...</p>
             </div>
-          ) : tasks.length === 0 && !error ? (
+          ) : tasks.length === 0 ? (
             <div className="empty-state">
               <p>No tasks found. Start by creating one!</p>
             </div>
