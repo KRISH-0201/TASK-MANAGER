@@ -25,6 +25,3 @@ npm run dev
 cd frontend
 npm run build
 ```
-
-Full Lab Report with before/after comparisons, diagrams, and viva answers:  
-📁 [`docs/PRACTICAL_8_REPORT.md`](file:///d:/taskmgr/docs/PRACTICAL_8_REPORT.md)

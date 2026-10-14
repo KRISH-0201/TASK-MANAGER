@@ -54,9 +54,3 @@ Verify generated chunks in terminal:
 - `Analytics-*.js`
 - `Contact-*.js`
 - `AnalyticsChart-*.js`
-
----
-
-## 📄 Complete Practical Report
-Check the comprehensive lab report at:  
-👉 [`docs/PRACTICAL_8_REPORT.md`](file:///d:/taskmgr/docs/PRACTICAL_8_REPORT.md)
