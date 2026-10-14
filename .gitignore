@@ -5,3 +5,5 @@ dist/
 build/
 docs/
 commit_practical_8.bat
+commit_practical_9.bat
+remove_docs_from_git.bat

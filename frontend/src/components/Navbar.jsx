@@ -22,6 +22,9 @@ export default function Navbar({ user, onLogout }) {
         <NavLink to="/analytics" className="nav-item">
           <span className="nav-icon">📊</span> Analytics & Profiler
         </NavLink>
+        <NavLink to="/caching" className="nav-item">
+          <span className="nav-icon">⚡</span> Caching Lab
+        </NavLink>
         <NavLink to="/contact" className="nav-item">
           <span className="nav-icon">✉️</span> Contact
         </NavLink>

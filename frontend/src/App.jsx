@@ -12,6 +12,7 @@ import LoadingFallback from './components/LoadingFallback';
 const Home = lazy(() => import('./pages/Home'));
 const Projects = lazy(() => import('./pages/Projects'));
 const Analytics = lazy(() => import('./pages/Analytics'));
+const CachingLab = lazy(() => import('./pages/CachingLab'));
 const Contact = lazy(() => import('./pages/Contact'));
 
 function App() {
@@ -432,6 +433,7 @@ function App() {
               />
               <Route path="/projects" element={<Projects />} />
               <Route path="/analytics" element={<Analytics tasks={tasks} />} />
+              <Route path="/caching" element={<CachingLab />} />
               <Route path="/contact" element={<Contact />} />
             </Routes>
           </Suspense>
