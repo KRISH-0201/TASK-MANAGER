@@ -1,7 +1,7 @@
 # Task Manager Full-Stack Application
 
 **Student ID:** 24AIML028  
-**Institution:** CHARUSAT - CSPIT / DEPSTAR  
+**Institution:** CHARUSAT - CSPIT
 **Practical:** Practical 8 - Performance Optimization and Lazy Loading in React  
 
 ---
