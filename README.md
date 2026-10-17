@@ -2,7 +2,6 @@
 
 **Student ID:** 24AIML028  
 **Institution:** CHARUSAT - CSPIT
-**Practical:** Practical 8 - Performance Optimization and Lazy Loading in React  
 
 ---
 
@@ -18,10 +17,4 @@ node server.js
 ```bash
 cd frontend
 npm run dev
-```
-
-### 3. Check Code Splitting & Chunk Sizes
-```bash
-cd frontend
-npm run build
 ```
