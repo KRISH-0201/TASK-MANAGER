@@ -445,6 +445,82 @@ app.post('/benchmark/async-vs-sync', auth, async (req, res) => {
   }
 });
 
+// ========================================================
+// Practical 11: Containerization & Docker Health Endpoints
+// ========================================================
+
+// Container Healthcheck Endpoint
+app.get('/health', (req, res) => {
+  const dbStatus = mongoose.connection.readyState === 1 ? 'healthy' : 'degraded';
+  res.status(dbStatus === 'healthy' ? 200 : 503).json({
+    status: dbStatus,
+    service: 'taskmgr-backend',
+    uptime: Math.floor(process.uptime()),
+    timestamp: new Date().toISOString(),
+    database: {
+      status: dbStatus === 'healthy' ? 'CONNECTED' : 'DISCONNECTED',
+      host: mongoose.connection.host || 'mongodb',
+      name: mongoose.connection.name || 'taskdb',
+    },
+  });
+});
+
+// Docker Telemetry & Container Orchestration Status Endpoint
+app.get('/docker/status', (req, res) => {
+  const mem = process.memoryUsage();
+  res.json({
+    isContainerized: Boolean(process.env.DOCKER_CONTAINER || process.env.KUBERNETES_SERVICE_HOST),
+    environment: process.env.NODE_ENV || 'production',
+    uptimeSeconds: Math.floor(process.uptime()),
+    nodeVersion: process.version,
+    platform: process.platform,
+    pid: process.pid,
+    memory: {
+      rss: `${Math.round(mem.rss / 1024 / 1024)} MB`,
+      heapUsed: `${Math.round(mem.heapUsed / 1024 / 1024)} MB`,
+      heapTotal: `${Math.round(mem.heapTotal / 1024 / 1024)} MB`,
+    },
+    database: {
+      status: mongoose.connection.readyState === 1 ? 'CONNECTED' : 'DISCONNECTED',
+      host: mongoose.connection.host || 'taskmgr-mongodb',
+      port: mongoose.connection.port || 27017,
+      name: mongoose.connection.name || 'taskdb',
+    },
+    topology: [
+      {
+        service: 'frontend',
+        container: 'taskmgr-frontend',
+        image: 'nginx:alpine (Multi-Stage Node 20)',
+        internalPort: '80',
+        externalPort: '5173 / 80',
+        role: 'Reverse Proxy & Static Asset Web Server',
+        status: 'HEALTHY',
+        type: 'client',
+      },
+      {
+        service: 'backend',
+        container: 'taskmgr-backend',
+        image: 'node:20-alpine',
+        internalPort: '5000',
+        externalPort: '5000',
+        role: 'Express.js REST API & Event Bus',
+        status: 'HEALTHY',
+        type: 'api',
+      },
+      {
+        service: 'mongodb',
+        container: 'taskmgr-mongodb',
+        image: 'mongo:7.0',
+        internalPort: '27017',
+        externalPort: '27017',
+        role: 'Persistent NoSQL Document Store (Volume: mongo_data)',
+        status: mongoose.connection.readyState === 1 ? 'HEALTHY' : 'CONNECTING',
+        type: 'database',
+      },
+    ],
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

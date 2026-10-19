@@ -1,0 +1,6 @@
+node_modules
+.git
+.gitignore
+docs
+*.bat
+npm-debug.log

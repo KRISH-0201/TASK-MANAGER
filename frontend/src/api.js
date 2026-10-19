@@ -190,4 +190,22 @@ export const runAsyncBenchmark = async () => {
   return handleResponse(response);
 };
 
+// Practical 11: Containerization & Docker Orchestration APIs
+export const getHealthStatus = async () => {
+  const t0 = performance.now();
+  const response = await fetch(`${BASE_URL}/health`);
+  const t1 = performance.now();
+  const data = await handleResponse(response);
+  return {
+    ...data,
+    pingLatencyMs: Math.round(t1 - t0),
+  };
+};
+
+export const getDockerStatus = async () => {
+  const response = await fetch(`${BASE_URL}/docker/status`);
+  return handleResponse(response);
+};
+
+
 
