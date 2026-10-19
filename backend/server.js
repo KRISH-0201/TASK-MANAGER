@@ -13,6 +13,8 @@ const User = require('./models/User');
 const auth = require('./middleware/auth');
 const validateTask = require('./middleware/validateTask');
 const cache = require('./cache');
+const eventBus = require('./eventBus');
+const asyncQueue = require('./asyncQueue');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -287,8 +289,11 @@ app.post('/tasks', auth, validateTask, async (req, res) => {
     });
     await newTask.save();
 
-    // Cache Invalidation on Create
+    // Cache Invalidation on Create (Practical 9)
     cache.del(`tasks_${req.user.id}`);
+
+    // Practical 10: Event-Driven Architecture - Emit task:created event
+    eventBus.emit('task:created', { task: newTask, user: req.user });
 
     res.status(201).json(newTask);
   } catch (err) {
@@ -306,6 +311,8 @@ app.put('/tasks/:id', auth, validateTask, async (req, res) => {
     if (!task) {
       return res.status(404).json({ error: 'Task not found or not authorized' });
     }
+
+    const previousStatus = task.status;
 
     if (title !== undefined) task.title = title;
     if (status !== undefined && ['pending', 'ongoing', 'completed'].includes(status)) {
@@ -328,6 +335,13 @@ app.put('/tasks/:id', auth, validateTask, async (req, res) => {
     cache.del(`tasks_${req.user.id}`);
     cache.del(`task_${req.user.id}_${id}`);
 
+    // Practical 10: Event-Driven Architecture - Emit appropriate event
+    if (task.status === 'completed' && previousStatus !== 'completed') {
+      eventBus.emit('task:completed', { task, user: req.user });
+    } else if (task.status !== previousStatus) {
+      eventBus.emit('task:status_changed', { task, newStatus: task.status, previousStatus, user: req.user });
+    }
+
     res.json(task);
   } catch (err) {
     res.status(500).json({ error: 'Server error while updating task' });
@@ -346,6 +360,9 @@ app.delete('/tasks/:id', auth, async (req, res) => {
     cache.del(`tasks_${req.user.id}`);
     cache.del(`task_${req.user.id}_${id}`);
 
+    // Practical 10: Event-Driven Architecture - Emit task:deleted event
+    eventBus.emit('task:deleted', { taskId: id, task, user: req.user });
+
     res.json({ message: 'Task deleted successfully', task });
   } catch (err) {
     res.status(500).json({ error: 'Server error while deleting task' });
@@ -360,6 +377,72 @@ app.get('/cache/stats', (req, res) => {
 app.post('/cache/clear', (req, res) => {
   cache.flush();
   res.json({ message: 'In-memory cache flushed successfully', stats: cache.getStats() });
+});
+
+// ========================================================
+// Practical 10: Asynchronous Job Processing & Event Routes
+// ========================================================
+
+// 1. Submit heavy export job -> Responds with HTTP 202 Accepted immediately
+app.post('/jobs/export', auth, async (req, res) => {
+  try {
+    const tasks = await Task.find({ user: req.user.id }).sort({ createdAt: -1 });
+    const job = asyncQueue.createExportJob(req.user.id, req.user.email, tasks);
+    
+    // HTTP 202 Accepted: Request received and scheduled for background execution
+    res.status(202).json({
+      message: 'Export job accepted and scheduled in background queue (HTTP 202 Accepted)',
+      job,
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to enqueue export job' });
+  }
+});
+
+// 2. Poll job status by ID
+app.get('/jobs/:id', auth, (req, res) => {
+  const job = asyncQueue.getJob(req.params.id);
+  if (!job) {
+    return res.status(404).json({ error: 'Job not found' });
+  }
+  res.json(job);
+});
+
+// 3. List recent jobs for user
+app.get('/jobs', auth, (req, res) => {
+  const jobs = asyncQueue.getUserJobs(req.user.id);
+  res.json(jobs);
+});
+
+// 4. Real-time Event Stream inspection
+app.get('/events/recent', (req, res) => {
+  res.json(eventBus.getRecentEvents());
+});
+
+// 5. Trigger simulated test event for demonstration
+app.post('/events/emit-test', auth, (req, res) => {
+  const { eventType, details } = req.body;
+  const type = eventType || 'task:status_changed';
+  
+  if (type === 'task:completed') {
+    eventBus.emit('task:completed', { task: { title: details || 'Quarterly Financial Model Review' }, user: req.user });
+  } else if (type === 'task:created') {
+    eventBus.emit('task:created', { task: { _id: 'sim_' + Date.now(), title: details || 'Automated Performance Audit' }, user: req.user });
+  } else {
+    eventBus.emit('task:status_changed', { task: { title: details || 'Security Vulnerability Scan' }, newStatus: 'completed', user: req.user });
+  }
+
+  res.json({ message: `Simulated event "${type}" emitted successfully to EventBus`, timestamp: new Date().toISOString() });
+});
+
+// 6. Benchmark Comparison: Synchronous Blocking vs. Asynchronous Event-Driven
+app.post('/benchmark/async-vs-sync', auth, async (req, res) => {
+  try {
+    const benchmarkResults = await asyncQueue.runBenchmarkComparison();
+    res.json(benchmarkResults);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to run benchmark' });
+  }
 });
 
 app.listen(PORT, () => {

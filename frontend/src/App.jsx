@@ -13,6 +13,7 @@ const Home = lazy(() => import('./pages/Home'));
 const Projects = lazy(() => import('./pages/Projects'));
 const Analytics = lazy(() => import('./pages/Analytics'));
 const CachingLab = lazy(() => import('./pages/CachingLab'));
+const AsyncLab = lazy(() => import('./pages/AsyncLab'));
 const Contact = lazy(() => import('./pages/Contact'));
 
 function App() {
@@ -434,6 +435,7 @@ function App() {
               <Route path="/projects" element={<Projects />} />
               <Route path="/analytics" element={<Analytics tasks={tasks} />} />
               <Route path="/caching" element={<CachingLab />} />
+              <Route path="/async-lab" element={<AsyncLab />} />
               <Route path="/contact" element={<Contact />} />
             </Routes>
           </Suspense>

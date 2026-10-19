@@ -8,7 +8,7 @@ export default function Navbar({ user, onLogout }) {
         <div className="brand-icon">⚡</div>
         <div>
           <h2>Task Manager</h2>
-          <span className="navbar-badge">Practical 8: Code Splitting</span>
+          <span className="navbar-badge">Practical 10: Event-Driven Arch</span>
         </div>
       </div>
 
@@ -24,6 +24,9 @@ export default function Navbar({ user, onLogout }) {
         </NavLink>
         <NavLink to="/caching" className="nav-item">
           <span className="nav-icon">⚡</span> Caching Lab
+        </NavLink>
+        <NavLink to="/async-lab" className="nav-item">
+          <span className="nav-icon">🔄</span> Async Architecture
         </NavLink>
         <NavLink to="/contact" className="nav-item">
           <span className="nav-icon">✉️</span> Contact

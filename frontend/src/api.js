@@ -144,3 +144,50 @@ export const clearCache = async () => {
   return handleResponse(response);
 };
 
+// Practical 10: Asynchronous Job Processing & Event-Driven Architecture APIs
+export const submitExportJob = async () => {
+  const response = await fetch(`${BASE_URL}/jobs/export`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+  });
+  // Handles 202 Accepted status
+  return handleResponse(response);
+};
+
+export const getJobStatus = async (jobId) => {
+  const response = await fetch(`${BASE_URL}/jobs/${jobId}`, {
+    headers: getAuthHeaders(),
+  });
+  return handleResponse(response);
+};
+
+export const getUserJobs = async () => {
+  const response = await fetch(`${BASE_URL}/jobs`, {
+    headers: getAuthHeaders(),
+  });
+  return handleResponse(response);
+};
+
+export const getRecentEvents = async () => {
+  const response = await fetch(`${BASE_URL}/events/recent`);
+  return handleResponse(response);
+};
+
+export const emitSimulatedEvent = async (eventType, details) => {
+  const response = await fetch(`${BASE_URL}/events/emit-test`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ eventType, details }),
+  });
+  return handleResponse(response);
+};
+
+export const runAsyncBenchmark = async () => {
+  const response = await fetch(`${BASE_URL}/benchmark/async-vs-sync`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+  });
+  return handleResponse(response);
+};
+
+
