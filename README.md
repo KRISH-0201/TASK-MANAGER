@@ -1,5 +1,7 @@
 # Task Manager Full-Stack Application
 
+[![CI Pipeline](https://github.com/KRISH-0201/TASK-MANAGER/actions/workflows/ci.yml/badge.svg)](https://github.com/KRISH-0201/TASK-MANAGER/actions)
+
 **Student ID:** 24AIML028  
 **Institution:** CHARUSAT - CSPIT
 

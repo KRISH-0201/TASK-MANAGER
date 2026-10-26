@@ -8,7 +8,7 @@ export default function Navbar({ user, onLogout }) {
         <div className="brand-icon">⚡</div>
         <div>
           <h2>Task Manager</h2>
-          <span className="navbar-badge">Practical 11: Docker Containerization</span>
+          <span className="navbar-badge">Practical 12: CI/CD GitHub Actions</span>
         </div>
       </div>
 
@@ -30,6 +30,9 @@ export default function Navbar({ user, onLogout }) {
         </NavLink>
         <NavLink to="/docker-lab" className="nav-item">
           <span className="nav-icon">🐳</span> Docker & Compose
+        </NavLink>
+        <NavLink to="/ci-lab" className="nav-item">
+          <span className="nav-icon">🚀</span> CI/CD Pipeline
         </NavLink>
         <NavLink to="/contact" className="nav-item">
           <span className="nav-icon">✉️</span> Contact

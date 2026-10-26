@@ -15,6 +15,7 @@ const Analytics = lazy(() => import('./pages/Analytics'));
 const CachingLab = lazy(() => import('./pages/CachingLab'));
 const AsyncLab = lazy(() => import('./pages/AsyncLab'));
 const DockerLab = lazy(() => import('./pages/DockerLab'));
+const CiCdLab = lazy(() => import('./pages/CiCdLab'));
 const Contact = lazy(() => import('./pages/Contact'));
 
 function App() {
@@ -438,6 +439,7 @@ function App() {
               <Route path="/caching" element={<CachingLab />} />
               <Route path="/async-lab" element={<AsyncLab />} />
               <Route path="/docker-lab" element={<DockerLab />} />
+              <Route path="/ci-lab" element={<CiCdLab />} />
               <Route path="/contact" element={<Contact />} />
             </Routes>
           </Suspense>
