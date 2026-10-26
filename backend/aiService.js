@@ -105,7 +105,7 @@ Respond strictly in valid JSON format with keys: "description", "suggestedPriori
         }],
         generationConfig: {
           temperature: 0.3,
-          maxOutputTokens: 250,
+          maxOutputTokens: 1000,
           responseMimeType: 'application/json'
         }
       })
