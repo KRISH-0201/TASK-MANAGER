@@ -10,7 +10,21 @@ const UserSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
+    default: null,
+  },
+  googleId: {
+    type: String,
+    default: null,
+    sparse: true,
+    unique: true,
+  },
+  resetToken: {
+    type: String,
+    default: null,
+  },
+  resetTokenExpires: {
+    type: Date,
+    default: null,
   },
   createdAt: {
     type: Date,
