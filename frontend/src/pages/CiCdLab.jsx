@@ -279,8 +279,8 @@ jobs:
               <div className="term-line step-header">##[group]Run npm ci in backend</div>
               <div className="term-line">added 24 packages in 1.14s</div>
               <div className="term-line step-header">##[group]Run npm test (Automated Unit Tests)</div>
-              <div className="term-line">> backend@1.0.0 test</div>
-              <div className="term-line">> node --test</div>
+              <div className="term-line">&gt; backend@1.0.0 test</div>
+              <div className="term-line">&gt; node --test</div>
               
               {pipelineState === 'passed' ? (
                 <>
@@ -293,7 +293,7 @@ jobs:
                   <div className="term-line test-pass">✔ creates a usable reset token and password strength (1.4ms)</div>
                   <div className="term-line">ℹ tests 7 | pass 7 | fail 0 | cancelled 0 | duration_ms 42.6</div>
                   <div className="term-line step-header">##[group]Run npm run build in frontend</div>
-                  <div className="term-line">> vite build</div>
+                  <div className="term-line">&gt; vite build</div>
                   <div className="term-line success">vite v8.2.1 building for production...</div>
                   <div className="term-line success">✓ 84 modules transformed.</div>
                   <div className="term-line success">dist/index.html                   0.45 kB │ gzip:  0.28 kB</div>
