@@ -8,7 +8,7 @@ export default function Navbar({ user, onLogout }) {
         <div className="brand-icon">⚡</div>
         <div>
           <h2>Task Manager</h2>
-          <span className="navbar-badge">Practical 12: CI/CD GitHub Actions</span>
+          <span className="navbar-badge">Practical 13: AI API Integration</span>
         </div>
       </div>
 
@@ -33,6 +33,9 @@ export default function Navbar({ user, onLogout }) {
         </NavLink>
         <NavLink to="/ci-lab" className="nav-item">
           <span className="nav-icon">🚀</span> CI/CD Pipeline
+        </NavLink>
+        <NavLink to="/ai-lab" className="nav-item">
+          <span className="nav-icon">✨</span> AI Assistant
         </NavLink>
         <NavLink to="/contact" className="nav-item">
           <span className="nav-icon">✉️</span> Contact

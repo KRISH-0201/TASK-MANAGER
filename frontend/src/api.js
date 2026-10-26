@@ -207,5 +207,39 @@ export const getDockerStatus = async () => {
   return handleResponse(response);
 };
 
+// Practical 13: External AI API Integration & Responsible AI
+export const getAiStatus = async () => {
+  const response = await fetch(`${BASE_URL}/api/ai/status`);
+  return handleResponse(response);
+};
+
+export const generateAiDescription = async ({ title, simulateFailure = false }) => {
+  const response = await fetch(`${BASE_URL}/api/ai/generate-description`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ title, simulateFailure }),
+  });
+  
+  if (response.status === 429) {
+    const errorData = await response.json();
+    const err = new Error(errorData.error || 'Rate limit exceeded');
+    err.status = 429;
+    err.remainingSeconds = errorData.remainingSeconds;
+    throw err;
+  }
+  
+  return handleResponse(response);
+};
+
+export const previewSanitization = async (text) => {
+  const response = await fetch(`${BASE_URL}/api/ai/sanitize-preview`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ text }),
+  });
+  return handleResponse(response);
+};
+
+
 
 

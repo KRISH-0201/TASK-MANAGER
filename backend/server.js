@@ -15,6 +15,7 @@ const validateTask = require('./middleware/validateTask');
 const cache = require('./cache');
 const eventBus = require('./eventBus');
 const asyncQueue = require('./asyncQueue');
+const aiService = require('./aiService');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -521,6 +522,79 @@ app.get('/docker/status', (req, res) => {
   });
 });
 
+// ==========================================
+// Practical 13: AI API Integration Endpoints
+// ==========================================
+
+// AI Status & Configuration Telemetry
+app.get('/api/ai/status', (req, res) => {
+  const hasGemini = Boolean(process.env.GEMINI_API_KEY);
+  const hasOpenAI = Boolean(process.env.OPENAI_API_KEY);
+  res.json({
+    enabled: true,
+    provider: hasGemini ? 'Google Gemini 1.5 Flash' : (hasOpenAI ? 'OpenAI GPT-4o-mini' : 'Heuristic Fallback Engine'),
+    apiKeyConfigured: hasGemini || hasOpenAI,
+    gracefulDegradationReady: true,
+    rateLimitWindowSeconds: 60,
+    maxRequestsPerWindow: 1,
+    sanitizationActive: true
+  });
+});
+
+// AI Task Description & Priority Generator
+app.post('/api/ai/generate-description', async (req, res) => {
+  try {
+    const { title, simulateFailure } = req.body;
+    if (!title || !title.trim()) {
+      return res.status(400).json({ error: 'Task title is required' });
+    }
+
+    // Identify user from header or fallback
+    let userIdentifier = req.ip || 'anonymous';
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      try {
+        const decoded = jwt.verify(authHeader.split(' ')[1], JWT_SECRET);
+        userIdentifier = decoded.id;
+      } catch (e) {
+        // Continue with IP identifier if token invalid
+      }
+    }
+
+    const result = await aiService.generateTaskDescription({
+      title,
+      simulateFailure: Boolean(simulateFailure),
+      userIdentifier
+    });
+
+    res.json(result);
+  } catch (err) {
+    if (err.status === 429) {
+      return res.status(429).json({
+        error: err.message,
+        remainingSeconds: err.remainingSeconds,
+        rateLimited: true
+      });
+    }
+
+    console.error('AI Route Unexpected Error:', err);
+    // Graceful fallback response instead of crash
+    res.status(200).json(aiService.generateFallbackSuggestion(req.body?.title || 'New Task'));
+  }
+});
+
+// Responsible AI: Live PII Sanitization Preview
+app.post('/api/ai/sanitize-preview', (req, res) => {
+  const { text } = req.body;
+  const sanitized = aiService.sanitizePrompt(text || '');
+  res.json({
+    original: text || '',
+    sanitized,
+    piiDetected: sanitized !== (text || '')
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
